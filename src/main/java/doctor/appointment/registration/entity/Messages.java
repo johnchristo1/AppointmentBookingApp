@@ -9,10 +9,10 @@ public class Messages {
 	public String drAdded = "Doctor added succesfully";
 	public String addRules = "Rules added succesfully";
 	public String updateRules = "Rules updated succesfully";
-	public String drAvailable = "Dr %s is available in the selected time, Total fee is %d, including processing fee and special discount. ";
+	public String drAvailable = "Dr %s is available in the selected time, Total consultation fee is %d, including processing fee and special discount. ";
 	public String drNotAvailInTime = "Sorry Dr %s is not available in the selected time, please change the time and try again";
 	public String drNotAvailOnDay = "Sorry Dr %s is not available on the selected day, please select an available day";
-	public String appointmentConfirm = "Appoitnment confiremed, Thank you.";
+	public String appointmentConfirm = "Appoitnment confiremed, Your booking id is %d , Thank you.";
 	public String noDrAvailable = "No doctor is available with the given doctorId";
 	public String rescheduleCompleted = "Rescheduled your appointment, new time slot is %s .";
 	public String timeNotAvailable = "Time you have selected is not available, please select another time.";
@@ -23,12 +23,36 @@ public class Messages {
 	public String enterCorrectDay = "Please enter a correct day, reffer availability of doctor";
 	public String enterCorrectBookedTime = "Please enter a correct booked time.";
 	public String enterCorrectBookeDay = "Please enter a correct booked day";
-	public String userAdded = "User added succesfully, your tocken id is %d .";
+	public String userAdded = "User added succesfully, your user id is %d .";
 	public String uniquePhNo = "Phone number is already registered. ";
 	public String uniqueMail = "Email id is already registered. ";
 	public String payCorrectAmount = "Please pay correct fee, Rs. %d. ";
-	public String tockenIdAlready = "Tocken id already registered. ";
-	
+	public String tockenIdAlready = "User id already registered. ";
+	public String drDeleted = "Doctor deleted succesfully. ";
+	public String noUserId = "Please enter a valid user id. ";
+	public String wrongBookingId = "Wrong booking id, please check the booking id.";
+	public String invalidUserId = "You have entered invali user id.";
+	public String userDeleted = "User deleted succesfully.";
+
+	public String getUserDeleted() {
+		return userDeleted;
+	}
+
+	public String getInvalidUserId() {
+		return invalidUserId;
+	}
+
+	public String getWrongBookingId() {
+		return wrongBookingId;
+	}
+
+	public String getNoUserId() {
+		return noUserId;
+	}
+
+	public String getDrDeleted() {
+		return drDeleted;
+	}
 
 	public String getTockenIdAlready() {
 		return tockenIdAlready;

@@ -1,13 +1,16 @@
 package doctor.appointment.registration.controller;
 
-import java.util.List;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import javax.validation.Valid;
 
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +21,7 @@ import doctor.appointment.registration.entity.BookDoctorEntity;
 import doctor.appointment.registration.entity.CancelAppointmentEntity;
 import doctor.appointment.registration.entity.ConfirmAppointmentEntity;
 import doctor.appointment.registration.entity.DoctorDetailsEntity;
+import doctor.appointment.registration.entity.GetDrBySpecializationEntity;
 import doctor.appointment.registration.entity.RescheduleEntity;
 import doctor.appointment.registration.entity.ResponseObject;
 import doctor.appointment.registration.entity.RulesEntity;
@@ -40,6 +44,15 @@ public class UserController {
 		return services.saveDoctor(doctorDetailsEntity);
 	}
 
+	@DeleteMapping("/admin/deleteDoctors/{drId}")
+	public ResponseObject deleteDr(@PathVariable int drId) {
+		return services.deleteDr(drId);
+	}
+	@DeleteMapping("/admin/deleteUser/{userId}")
+	public ResponseObject deleteUser(@PathVariable int userId) {
+		return services.deleteUser(userId);
+	}
+
 //add user
 	@PostMapping("/user/addUser")
 	public ResponseObject addUser(@Valid @RequestBody UserRegistrationEntity userRegistrationEntity) {
@@ -60,8 +73,9 @@ public class UserController {
 
 // get by specialization
 	@GetMapping("/user/findDoctor")
-	public Object findDoctor(@RequestBody DoctorDetailsEntity doctorDetailsEntity) {
-		return services.findByDoctor(doctorDetailsEntity.getSpecialization());
+	public Object findDoctor(@RequestBody GetDrBySpecializationEntity getDrBySpecializationEntity) {
+		return services.findDoctor(getDrBySpecializationEntity.getSpecialization(),
+				getDrBySpecializationEntity.getUserId());
 	}
 
 // check if the the dr is available in the given time and date
@@ -88,9 +102,8 @@ public class UserController {
 		return services.cancelAppointment(cancelAppointmentEntity);
 	}
 
-	@PostMapping("/test")
-	public void test(@RequestBody DoctorDetailsEntity doctorDetailsEntity) {
-
-//		System.out.println("out : " + userRepository.GetBookedUserByTockenId(11).getUser_name());
+	@GetMapping("/user/showBooking")
+	public Object showBooking(@RequestBody CancelAppointmentEntity showBookingEntity) {
+		return services.showBooking(showBookingEntity);	
 	}
 }

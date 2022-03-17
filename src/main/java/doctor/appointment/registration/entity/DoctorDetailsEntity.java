@@ -6,6 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -13,43 +14,45 @@ import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.Range;
 import org.json.simple.JSONObject;
+
 @Entity
-@Table(name="doctors_list")
+@Table(name = "doctors_list")
 public class DoctorDetailsEntity {
-	
+
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int id;
-	
-    @NotEmpty(message = "Doctor name is not given")
-    @Column(name = "name")
+
+	@NotEmpty(message = "Doctor name is not given")
+	@Column(name = "name")
 	public String name;
-    
-    @Column(name="doctor_id")
+
+	@Column(name = "doctor_id")
 	public int doctorId;
-	
+
 	@NotEmpty(message = "Specialization is not given")
-	@Column(name="specialization")
+	@Column(name = "specialization")
 	public String specialization;
-	
-	@Range(min = 1, max=999, message = "Consultation fee cannot be empty")
-	@Column(name="consultation_fee")
+
+	@Range(min = 1, max = 999, message = "Consultation fee cannot be empty")
+	@Column(name = "consultation_fee")
 	public int consultationFee;
-	
-//	@NotEmpty(message = "availability is not given")
-//	@Column(name="availability")
-//	public String availability;
-//	
-//	public String getAvailability() {
-//		return availability;
-//	}
-//
-//	public void setAvailability(String availability) {
-//		this.availability = availability;
-//	}
- 
+
+	@Column(name = "email_id")
+	@Email(message = "please enter a valid email address")
+	@NotEmpty(message = "Email id is not given")
+	public String emailId;
+
 	public JSONObject availability;
-	
+
+	public String getEmailId() {
+		return emailId;
+	}
+
+	public void setEmailId(String emailId) {
+		this.emailId = emailId;
+	}
+
 	public JSONObject getAvailability() {
 		return availability;
 	}

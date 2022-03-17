@@ -13,9 +13,16 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ConfirmAppointmentEntity {
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	public int id;
+	public String timeOfBooking;
+
+	public String getTimeOfBooking() {
+		return timeOfBooking;
+	}
+
+	public void setTimeOfBooking(String timeOfBooking) {
+		this.timeOfBooking = timeOfBooking;
+	}
+
 	public BookingInfoEntity bookingInfo;
 	public PaymentInfoEntity paymentInfo;
 

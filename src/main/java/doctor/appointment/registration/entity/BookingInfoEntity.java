@@ -13,15 +13,14 @@ public class BookingInfoEntity {
 	public int doctorId;
 	
 	@Range(min = 1, max = 999)
-	public int tockenId;
+	public int userId;
 	
-
-	public int getTockenId() {
-		return tockenId;
+	public int getUserId() {
+		return userId;
 	}
 
-	public void setTockenId(int tockenId) {
-		this.tockenId = tockenId;
+	public void setUserId(int userId) {
+		this.userId = userId;
 	}
 
 	@NotEmpty(message = "Day is not given")

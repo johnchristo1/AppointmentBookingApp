@@ -32,16 +32,16 @@ public class UserRepository {
 //admin - save doctors
 	public void saveDoctor(DoctorDetailsEntity doctorDetailsEntity) {
 		jdbcTemplate.update(
-				"INSERT INTO doctors_list (name, doctor_id, specialization, consultation_fee,availability) VALUES (?,?,?,?,?)",
+				"INSERT INTO doctors_list (name, doctor_id, specialization, consultation_fee,availability,email_id) VALUES (?,?,?,?,?,?)",
 				new Object[] { doctorDetailsEntity.getName(), doctorDetailsEntity.getDoctorId(),
 						doctorDetailsEntity.getSpecialization(), doctorDetailsEntity.getConsultationFee(),
-						doctorDetailsEntity.getAvailability().toString() });
+						doctorDetailsEntity.getAvailability().toString(), doctorDetailsEntity.getEmailId() });
 	}
 
 //save user
 	public void addUser(UserRegistrationEntity userRegistrationEntity) {
-		jdbcTemplate.update("INSERT INTO user_details (tocken_id, mail_id, phone_number, user_name) VALUES (?,?,?,?)",
-				new Object[] { userRegistrationEntity.getTockenId(), userRegistrationEntity.getMailId(),
+		jdbcTemplate.update("INSERT INTO user_details (user_id, mail_id, phone_number, user_name) VALUES (?,?,?,?)",
+				new Object[] { userRegistrationEntity.getUserId(), userRegistrationEntity.getMailId(),
 						userRegistrationEntity.getPhoneNumber(), userRegistrationEntity.getUserName() });
 	}
 
@@ -59,6 +59,9 @@ public class UserRepository {
 				new Object[] { rulesEntity.getFee().getProcessingFee(), rulesEntity.getOffers().getSpecialOffer(),
 						rulesEntity.getDeductions().getBefore4hr(), rulesEntity.getDeductions().getAfter4hr() });
 	}
+	// take rules to an entity
+	// if the incoming req is null then save old value to a variable
+	// then use that data to update
 
 // user-find doctor details by specialization
 	public List<GetDoctorDetailsEntity> findBySpesialization(String specialization) {
@@ -84,29 +87,24 @@ public class UserRepository {
 
 	public void saveUser(ConfirmAppointmentEntity confirmAppointmentEntity) {
 		jdbcTemplate.update(
-				"INSERT INTO booking_details (user_name, doctor_id, fee_paid, booked_time, booked_day,booked_doctor,tocken_id) VALUES (?,?,?,?,?,?,?)",
+				"INSERT INTO booking_details (user_name, doctor_id, fee_paid, booked_time, booked_day,booked_doctor,user_id,time_of_booking) VALUES (?,?,?,?,?,?,?,?)",
 				new Object[] { confirmAppointmentEntity.getPaymentInfo().getNameAsInTheCard(),
 						confirmAppointmentEntity.getBookingInfo().getDoctorId(),
 						confirmAppointmentEntity.getPaymentInfo().getAmount(),
 						confirmAppointmentEntity.getBookingInfo().getTime(),
 						confirmAppointmentEntity.getBookingInfo().getDay(),
 						confirmAppointmentEntity.getBookingInfo().getNameOfDoctor(),
-						confirmAppointmentEntity.getBookingInfo().getTockenId() });
+						confirmAppointmentEntity.getBookingInfo().getUserId(),
+						confirmAppointmentEntity.getTimeOfBooking() });
 	}
 
-//get paid fee, name etc
-	public GetUserDetailsEntity getUserDetails(int id) {
-		return jdbcTemplate.queryForObject("SELECT * FROM appoitnmentapptables.booking_details where id=?;",
-				new BeanPropertyRowMapper<GetUserDetailsEntity>(GetUserDetailsEntity.class), id);
+	public GetBookedUser GetBookedUserByUserId(int userId) {
+		return jdbcTemplate.queryForObject("SELECT * FROM appoitnmentapptables.booking_details where user_id =?;",
+				new BeanPropertyRowMapper<GetBookedUser>(GetBookedUser.class), userId);
 	}
 
-	public int GetUserId(String userName) {
-		return Integer.parseInt(jdbcTemplate.queryForObject(
-				"SELECT id FROM appoitnmentapptables.booking_details where user_name =?;", String.class, userName));
-	}
-
-	public void UpdateUserDetails(String newBookedTime, int tockenId) {
-		jdbcTemplate.update("UPDATE booking_details SET booked_time=? WHERE tocken_id =?;", newBookedTime, tockenId);
+	public void UpdateUserDetails(String newBookedTime, int userId) {
+		jdbcTemplate.update("UPDATE booking_details SET booked_time=? WHERE user_id =?;", newBookedTime, userId);
 
 	}
 
@@ -122,17 +120,30 @@ public class UserRepository {
 		return jdbcTemplate.queryForList("SELECT doctor_id FROM appoitnmentapptables.doctors_list;", Integer.class);
 	}
 
-	public int GetTockenId(String mailId) {
+	public int GetUserId(String mailId) {
 		return Integer.parseInt(jdbcTemplate.queryForObject(
-				"SELECT tocken_id FROM appoitnmentapptables.user_details where mail_id=?;", String.class, mailId));
+				"SELECT user_id FROM appoitnmentapptables.user_details where mail_id=?;", String.class, mailId));
 	}
 
-	public List<Integer> GetTockenIdList() {
-		return jdbcTemplate.queryForList("SELECT tocken_id FROM appoitnmentapptables.booking_details;", Integer.class);
+	public List<Integer> GetUserIdList() {
+		return jdbcTemplate.queryForList("SELECT user_id FROM appoitnmentapptables.booking_details;", Integer.class);
 	}
-	
-	public GetBookedUser GetBookedUserByTockenId(int tockenId) {
-		return jdbcTemplate.queryForObject("SELECT * FROM appoitnmentapptables.booking_details where tocken_id =?;",
-				new BeanPropertyRowMapper<GetBookedUser>(GetBookedUser.class), tockenId);
+
+	public List<String> GetDrRegisteredMailIdList() {
+		return jdbcTemplate.queryForList("SELECT email_id FROM appoitnmentapptables.doctors_list;", String.class);
 	}
+
+	public int DeleteDrbyDrId(int drId) {
+		return jdbcTemplate.update("DELETE FROM doctors_list WHERE doctor_id=?;", drId);
+	}
+
+	public int DeleteUserById(int userId) {
+		return jdbcTemplate.update("DELETE FROM appoitnmentapptables.booking_details WHERE user_id=?;", userId);
+	}
+
+	// get user id list from user details
+	public List<Integer> GetUserIdListFromUserDetails() {
+		return jdbcTemplate.queryForList("SELECT user_id FROM appoitnmentapptables.user_details;", Integer.class);
+	}
+
 }

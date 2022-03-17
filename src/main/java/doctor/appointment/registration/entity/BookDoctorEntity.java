@@ -5,13 +5,24 @@ import javax.validation.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
 public class BookDoctorEntity {
+	
+	public int userId;
+
+	public int getUserId() {
+		return userId;
+	}
+
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
+
 	@NotEmpty(message = "Day is not given")
 	public String day;
 	@NotEmpty(message = "Time is not given")
 	public String time;
-	@Range(min = 100, max=999)
+	@Range(min = 100, max = 999)
 	public int doctorId;
-	
+
 	public int getDoctorId() {
 		return doctorId;
 	}

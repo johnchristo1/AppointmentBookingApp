@@ -6,6 +6,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
 import org.hibernate.validator.constraints.Range;
@@ -13,9 +14,11 @@ import org.hibernate.validator.constraints.Range;
 @Table(name = "booking_details")
 @Entity
 public class BookingDetails {
+	
 	@Id
-	@GeneratedValue(strategy=GenerationType.AUTO)
-	public int id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "booking_id")
+	public int bookingId;
 
 	@Column(name = "booked_doctor")
 	@NotEmpty(message = "Doctor name is not given")
@@ -40,6 +43,21 @@ public class BookingDetails {
 	@Column(name = "user_name")
 	@NotEmpty(message = "Name in debit card is not given")
 	public String nameAsInTheCard;
+	
+	@Column(name = "user_id")
+	public int userId;
+	
+	@Column(name = "time_of_booking")
+	@NotEmpty(message = "Time of booking is not given")
+	public String timeOfBooking;
+	
+	public int getUserId() {
+		return userId;
+	}
+
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
 
 	public String getNameOfDoctor() {
 		return nameOfDoctor;

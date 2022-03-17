@@ -34,16 +34,46 @@ public class Services {
 	Messages messages;
 	JSONParser parser = new JSONParser();
 
+//add dr
 	public ResponseObject saveDoctor(DoctorDetailsEntity doctorDetailsEntity) {
 		int drId = (int) (Math.random() * (300 - 200 + 1) + 200);
 		while (userRepository.GetDrIdList().contains(drId)) {
 			drId++;
 		}
 		doctorDetailsEntity.setDoctorId(drId);
-		userRepository.saveDoctor(doctorDetailsEntity);
-		responseObject.setStatus(messages.getSuccessStatus());
-		responseObject.setMessage(messages.getDrAdded());
 
+		if (userRepository.GetDrRegisteredMailIdList().contains(doctorDetailsEntity.getEmailId()) == false) {
+			userRepository.saveDoctor(doctorDetailsEntity);
+			responseObject.setStatus(messages.getSuccessStatus());
+			responseObject.setMessage(messages.getDrAdded());
+		} else {
+			responseObject.setStatus(messages.getFailedStatus());
+			responseObject.setMessage(messages.getUniqueMail());
+		}
+		return responseObject;
+	}
+
+//delete dr
+	public ResponseObject deleteDr(int drId) {
+		if (userRepository.DeleteDrbyDrId(drId) == 1) {
+			responseObject.setStatus(messages.getSuccessStatus());
+			responseObject.setMessage(messages.getDrDeleted());
+		} else {
+			responseObject.setStatus(messages.getFailedStatus());
+			responseObject.setMessage(messages.getNoDrAvailable());
+		}
+		return responseObject;
+	}
+
+//delete user
+	public ResponseObject deleteUser(int userId) {
+		if (userRepository.DeleteUserById(userId) == 1) {
+			responseObject.setStatus(messages.getSuccessStatus());
+			responseObject.setMessage(messages.getUserDeleted());
+		} else {
+			responseObject.setStatus(messages.getFailedStatus());
+			responseObject.setMessage(messages.getNoUserId());
+		}
 		return responseObject;
 	}
 
@@ -53,7 +83,7 @@ public class Services {
 				userRepository.addUser(userRegistrationEntity);
 				responseObject.setStatus(messages.getSuccessStatus());
 				responseObject.setMessage(String.format(messages.getUserAdded(),
-						userRepository.GetTockenId(userRegistrationEntity.getMailId())));
+						userRepository.GetUserId(userRegistrationEntity.getMailId())));
 			} else {
 				responseObject.setStatus(messages.getFailedStatus());
 				responseObject.setMessage(messages.getUniquePhNo());
@@ -73,6 +103,15 @@ public class Services {
 	}
 
 	public ResponseObject updateRules(RulesEntity rulesEntity) {
+
+//		if (rulesEntity.getFee().getProcessingFee() ) {
+//
+//		}
+
+		rulesEntity.getOffers().getSpecialOffer();
+		rulesEntity.getDeductions().getBefore4hr();
+		rulesEntity.getDeductions().getAfter4hr();
+
 		userRepository.updateRules(rulesEntity);
 		responseObject.setStatus(messages.getSuccessStatus());
 		responseObject.setMessage(messages.getUpdateRules());
@@ -80,127 +119,166 @@ public class Services {
 	}
 
 //find doctor
-	public Object findByDoctor(String specialization) {
-		if (userRepository.findBySpesialization(specialization).isEmpty()) {
+	public Object findDoctor(String specialization, int userId) {
+		if (userRepository.GetUserIdListFromUserDetails().contains(userId)) {
+			if (userRepository.findBySpesialization(specialization).isEmpty()) {
+				responseObject.setStatus(messages.getFailedStatus());
+				responseObject.setMessage(messages.getNoDrWithSpecialization());
+				return responseObject;
+			} else {
+				return userRepository.findBySpesialization(specialization);
+			}
+		} else
+
+		{
 			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getNoDrWithSpecialization());
-			return responseObject;
-		} else {
-			return userRepository.findBySpesialization(specialization);
+			responseObject.setMessage(messages.getNoUserId());
 		}
+		return responseObject;
 	}
 
 //book Dr 
 	public ResponseObject checkDateAvailability(BookDoctorEntity bookDoctorEntity) {
-		try {
-			String availability = userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getAvailability();
-			List<String> availabilityList = new ArrayList<String>();
+		if (userRepository.GetUserIdListFromUserDetails().contains(bookDoctorEntity.getUserId())) {
 			try {
-				JSONObject availabilityJson = (JSONObject) parser.parse(availability);
-				availabilityList = (List<String>) availabilityJson.get(bookDoctorEntity.getDay());
-				if (availabilityList.contains(bookDoctorEntity.getTime())) {
-					int specialDiscount = userRepository.getOffers().getSpecialDiscount();
-					int processingFee = userRepository.getOffers().getPorcessingFee();
-					int consultationFee = userRepository.getDrDetails(bookDoctorEntity.getDoctorId())
-							.getConsultationFee();
-					long discount = (long) (((consultationFee + processingFee) * specialDiscount) / 100);
-					long feeAfterDiscount = (long) (consultationFee + processingFee) - discount;
-					String drAvailabilityStatus = String.format(messages.getDrAvailable(),
-							userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getName(), feeAfterDiscount);
-					responseObject.setStatus(messages.getSuccessStatus());
-					responseObject.setMessage(drAvailabilityStatus);
-				} else {
+				String availability = userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getAvailability();
+				List<String> availabilityList = new ArrayList<String>();
+				try {
+					JSONObject availabilityJson = (JSONObject) parser.parse(availability);
+					availabilityList = (List<String>) availabilityJson.get(bookDoctorEntity.getDay());
+					if (availabilityList.contains(bookDoctorEntity.getTime())) {
+						int specialDiscount = userRepository.getOffers().getSpecialDiscount();
+						int processingFee = userRepository.getOffers().getPorcessingFee();
+						int consultationFee = userRepository.getDrDetails(bookDoctorEntity.getDoctorId())
+								.getConsultationFee();
+						long discount = (long) (((consultationFee + processingFee) * specialDiscount) / 100);
+						long feeAfterDiscount = (long) (consultationFee + processingFee) - discount;
+						String drAvailabilityStatus = String.format(messages.getDrAvailable(),
+								userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getName(),
+								feeAfterDiscount);
+						responseObject.setStatus(messages.getSuccessStatus());
+						responseObject.setMessage(drAvailabilityStatus);
+					} else {
+						responseObject.setStatus(messages.getFailedStatus());
+						responseObject.setMessage(String.format(messages.getDrNotAvailInTime(),
+								userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getName()));
+					}
+				} catch (Exception e) {
 					responseObject.setStatus(messages.getFailedStatus());
-					responseObject.setMessage(String.format(messages.getDrNotAvailInTime(),
+					responseObject.setMessage(String.format(messages.getDrNotAvailOnDay(),
 							userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getName()));
 				}
 			} catch (Exception e) {
 				responseObject.setStatus(messages.getFailedStatus());
-				responseObject.setMessage(String.format(messages.getDrNotAvailOnDay(),
-						userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getName()));
+				responseObject.setMessage(messages.getEnterCorrectdetails());
 			}
-		} catch (Exception e) {
+		} else {
 			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getEnterCorrectdetails());
+			responseObject.setMessage(messages.getNoUserId());
 		}
 		return responseObject;
 	}
 
 //confirm Dr
 	public ResponseObject confirmAppointment(ConfirmAppointmentEntity confirmAppointmentEntity) throws ParseException {
-		try {
-			String availability = userRepository.getDrDetails(confirmAppointmentEntity.getBookingInfo().getDoctorId())
-					.getAvailability();
-			List<String> availabilityList = new ArrayList<String>();
-			JSONObject availabilityJson = (JSONObject) parser.parse(availability);
-			availabilityList = (List<String>) availabilityJson.get(confirmAppointmentEntity.getBookingInfo().getDay());
-			if (availabilityList != null) {
-				if (availabilityList.contains(confirmAppointmentEntity.getBookingInfo().getTime())) {
-					int specialDiscount = userRepository.getOffers().getSpecialDiscount();
-					int processingFee = userRepository.getOffers().getPorcessingFee();
-					int consultationFee = userRepository
-							.getDrDetails(confirmAppointmentEntity.getBookingInfo().getDoctorId()).getConsultationFee();
-					long discount = (long) (((consultationFee + processingFee) * specialDiscount) / 100);
-					long feeAfterDiscount = (long) (consultationFee + processingFee) - discount;
-					if (feeAfterDiscount == confirmAppointmentEntity.getPaymentInfo().getAmount()) {
-						if (userRepository.GetTockenIdList()
-								.contains(confirmAppointmentEntity.getBookingInfo().getTockenId()) == false) {
-
-							availabilityList.remove(confirmAppointmentEntity.getBookingInfo().getTime());
-							availabilityJson.remove(confirmAppointmentEntity.getBookingInfo().getDay());
-							availabilityJson.put(confirmAppointmentEntity.getBookingInfo().getDay(), availabilityList);
-							String newavailabilityJson = availabilityJson.toJSONString();
-							userRepository.saveUser(confirmAppointmentEntity);
-							userRepository.updateDrAvailability(newavailabilityJson,
-									confirmAppointmentEntity.getBookingInfo().getDoctorId());
-							responseObject.setStatus(messages.getSuccessStatus());
-							responseObject.setMessage(messages.getAppointmentConfirm());
+		if (userRepository.GetUserIdListFromUserDetails()
+				.contains(confirmAppointmentEntity.getBookingInfo().getUserId())) {
+			if (userRepository.GetDrIdList().contains(confirmAppointmentEntity.getBookingInfo().getDoctorId())) {
+				String availability = userRepository
+						.getDrDetails(confirmAppointmentEntity.getBookingInfo().getDoctorId()).getAvailability();
+				List<String> availabilityList = new ArrayList<String>();
+				JSONObject availabilityJson = (JSONObject) parser.parse(availability);
+				availabilityList = (List<String>) availabilityJson
+						.get(confirmAppointmentEntity.getBookingInfo().getDay());
+				if (availabilityList != null) {
+					if (availabilityList.contains(confirmAppointmentEntity.getBookingInfo().getTime())) {
+						int specialDiscount = userRepository.getOffers().getSpecialDiscount();
+						int processingFee = userRepository.getOffers().getPorcessingFee();
+						int consultationFee = userRepository
+								.getDrDetails(confirmAppointmentEntity.getBookingInfo().getDoctorId())
+								.getConsultationFee();
+						long discount = (long) (((consultationFee + processingFee) * specialDiscount) / 100);
+						long feeAfterDiscount = (long) (consultationFee + processingFee) - discount;
+						if (feeAfterDiscount == confirmAppointmentEntity.getPaymentInfo().getAmount()) {
+							if (userRepository.GetUserIdList()
+									.contains(confirmAppointmentEntity.getBookingInfo().getUserId()) == false) {
+								availabilityList.remove(confirmAppointmentEntity.getBookingInfo().getTime());
+								availabilityJson.remove(confirmAppointmentEntity.getBookingInfo().getDay());
+								availabilityJson.put(confirmAppointmentEntity.getBookingInfo().getDay(),
+										availabilityList);
+								String newavailabilityJson = availabilityJson.toJSONString();
+								// save time of confirm in table
+								DateFormat dateFormat = new SimpleDateFormat("HH-mm");
+								Calendar calendar = Calendar.getInstance();
+								String currentTime = dateFormat.format(calendar.getTime());
+								confirmAppointmentEntity.setTimeOfBooking(currentTime);
+								userRepository.saveUser(confirmAppointmentEntity);
+								userRepository.updateDrAvailability(newavailabilityJson,
+										confirmAppointmentEntity.getBookingInfo().getDoctorId());
+								int bookingId = userRepository
+										.GetBookedUserByUserId(confirmAppointmentEntity.getBookingInfo().getUserId())
+										.getBookingId();
+								responseObject.setStatus(messages.getSuccessStatus());
+								responseObject.setMessage(String.format(messages.getAppointmentConfirm(), bookingId));
+							} else {
+								responseObject.setStatus(messages.getFailedStatus());
+								responseObject.setMessage(messages.getTockenIdAlready());
+							}
 						} else {
 							responseObject.setStatus(messages.getFailedStatus());
-							responseObject.setMessage(messages.getTockenIdAlready());
+							responseObject.setMessage(String.format(messages.getPayCorrectAmount(), feeAfterDiscount));
 						}
 					} else {
 						responseObject.setStatus(messages.getFailedStatus());
-						responseObject.setMessage(String.format(messages.getPayCorrectAmount(), feeAfterDiscount));
+						responseObject.setMessage(messages.getTimeNotAvailable());
 					}
 				} else {
 					responseObject.setStatus(messages.getFailedStatus());
-					responseObject.setMessage(messages.getTimeNotAvailable());
+					responseObject.setMessage(messages.getEnterCorrectDay());
 				}
 			} else {
 				responseObject.setStatus(messages.getFailedStatus());
-				responseObject.setMessage(messages.getEnterCorrectDay());
+				responseObject.setMessage(messages.getNoDrAvailable());
 			}
-		} catch (Exception e) {
+		} else {
 			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getNoDrAvailable());
+			responseObject.setMessage(messages.getNoUserId());
 		}
 		return responseObject;
 	}
 
 	public ResponseObject rescheduleAppointment(RescheduleEntity rescheduleEntity) throws ParseException {
-		try {
-			String availability = userRepository
-					.getDrDetails(userRepository.GetBookedUserByTockenId(rescheduleEntity.getTockenId()).getDoctorId())
-					.getAvailability();
-			List<String> availabilityList = new ArrayList<String>();
-			JSONObject availabilityJson = (JSONObject) parser.parse(availability);
-			availabilityList = (List<String>) availabilityJson
-					.get(userRepository.GetBookedUserByTockenId(rescheduleEntity.getTockenId()).getBookedDay());
-			if (availabilityList != null) {
+		if (userRepository.GetUserIdListFromUserDetails().contains(rescheduleEntity.getUserId())) {
+			boolean flag = false;
+			try {
+				if (userRepository.GetBookedUserByUserId(rescheduleEntity.getUserId())
+						.getBookingId() == rescheduleEntity.getBookingId()) {
+					flag = true;
+				}
+			} catch (Exception e) {
+				flag = false;
+			}
+			if (flag) {
+				String availability = userRepository
+						.getDrDetails(userRepository.GetBookedUserByUserId(rescheduleEntity.getUserId()).getDoctorId())
+						.getAvailability();
+				List<String> availabilityList = new ArrayList<String>();
+				JSONObject availabilityJson = (JSONObject) parser.parse(availability);
+				availabilityList = (List<String>) availabilityJson
+						.get(userRepository.GetBookedUserByUserId(rescheduleEntity.getUserId()).getBookedDay());
 				if (availabilityList.contains(rescheduleEntity.getNewTime())) {
 					availabilityList.remove(rescheduleEntity.getNewTime());
-					availabilityList.add(
-							userRepository.GetBookedUserByTockenId(rescheduleEntity.getTockenId()).getBookedTime());
-					availabilityJson.remove(
-							userRepository.GetBookedUserByTockenId(rescheduleEntity.getTockenId()).getBookedDay());
+					availabilityList
+							.add(userRepository.GetBookedUserByUserId(rescheduleEntity.getUserId()).getBookedTime());
+					availabilityJson
+							.remove(userRepository.GetBookedUserByUserId(rescheduleEntity.getUserId()).getBookedDay());
 					availabilityJson.put(
-							userRepository.GetBookedUserByTockenId(rescheduleEntity.getTockenId()).getBookedDay(),
+							userRepository.GetBookedUserByUserId(rescheduleEntity.getUserId()).getBookedDay(),
 							availabilityList);
 					String newavailabilityJson = availabilityJson.toJSONString();
 					userRepository.updateDrAvailability(newavailabilityJson,
-							userRepository.GetBookedUserByTockenId(rescheduleEntity.getTockenId()).getDoctorId());
-					userRepository.UpdateUserDetails(rescheduleEntity.getNewTime(), rescheduleEntity.getTockenId());
+							userRepository.GetBookedUserByUserId(rescheduleEntity.getUserId()).getDoctorId());
+					userRepository.UpdateUserDetails(rescheduleEntity.getNewTime(), rescheduleEntity.getUserId());
 					responseObject.setStatus(messages.getSuccessStatus());
 					responseObject.setMessage(
 							String.format(messages.getRescheduleCompleted(), rescheduleEntity.getNewTime()));
@@ -210,70 +288,119 @@ public class Services {
 				}
 			} else {
 				responseObject.setStatus(messages.getFailedStatus());
-				responseObject.setMessage(messages.getEnterCorrectBookeDay());
+				responseObject.setMessage(messages.getWrongBookingId());
 			}
-
-		} catch (Exception e) {
+		} else {
 			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getNoDrAvailable());
+			responseObject.setMessage(messages.getNoUserId());
 		}
 		return responseObject;
 	}
 
 	public ResponseObject cancelAppointment(CancelAppointmentEntity cancelAppointmentEntity) throws ParseException {
-		String availability = userRepository
-				.getDrDetails(
-						userRepository.GetBookedUserByTockenId(cancelAppointmentEntity.getTockenId()).getDoctorId())
-				.getAvailability();
-		List<String> availabilityList = new ArrayList<String>();
-		JSONObject availabilityJson = (JSONObject) parser.parse(availability);
-		availabilityList = (List<String>) availabilityJson
-				.get(userRepository.GetBookedUserByTockenId(cancelAppointmentEntity.getTockenId()).getBookedDay());
+		String availability = null;
+		boolean flag = false;
+		try {
+			availability = userRepository
+					.getDrDetails(
+							userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId()).getDoctorId())
+					.getAvailability();
+			flag = true;
+		} catch (Exception e) {
+			flag = false;
+		}
 
-		if (userRepository.GetTockenIdList().contains(cancelAppointmentEntity.getTockenId())) {
-			availabilityList
-					.add(userRepository.GetBookedUserByTockenId(cancelAppointmentEntity.getTockenId()).getBookedTime());
-			availabilityJson.put(
-					userRepository.GetBookedUserByTockenId(cancelAppointmentEntity.getTockenId()).getBookedDay(),
-					availabilityList);
-			String newavailabilityJson = availabilityJson.toJSONString();
-			userRepository.updateDrAvailability(newavailabilityJson,
-					userRepository.GetBookedUserByTockenId(cancelAppointmentEntity.getTockenId()).getDoctorId());
-			DateFormat dateFormat = new SimpleDateFormat("HH-mm");
-			Calendar calendar = Calendar.getInstance();
-			String currentTime = dateFormat.format(calendar.getTime());
-			String[] currentTimeList = currentTime.split("-");
-			int currentTimeInMinutes = 60 * Integer.parseInt(currentTimeList[0]) + Integer.parseInt(currentTimeList[1]);
-			String registeredTime = userRepository.GetBookedUserByTockenId(cancelAppointmentEntity.getTockenId())
-					.getBookedTime();
-			String[] registeredTimeList = registeredTime.split("-");
-			String[] newRegisteredTimeList = registeredTimeList[0].split(":");
-			int registeredTimeInMinutes = 60 * Integer.parseInt(newRegisteredTimeList[0])
-					+ Integer.parseInt(newRegisteredTimeList[1]);
-			if ((registeredTimeInMinutes - currentTimeInMinutes) > 240) {
-				// id, userid
-				int paidFee = userRepository
-						.getUserDetails(
-								userRepository.GetBookedUserByTockenId(cancelAppointmentEntity.getTockenId()).getId())
-						.getFeePaid();
-				int refundAmount = paidFee - ((paidFee * userRepository.getOffers().getBefore4hr()) / 100);
-				System.out.println("refundAmount : " + refundAmount);
-				responseObject.setStatus(messages.getSuccessStatus());
-				responseObject.setMessage(String.format(messages.getAppointmentCancelled(), refundAmount));
-				System.out.println("refundAmount");
-			} else {
-				int paidFee = userRepository
-						.getUserDetails(
-								userRepository.GetBookedUserByTockenId(cancelAppointmentEntity.getTockenId()).getId())
-						.getFeePaid();
-				int refundAmount = paidFee - ((paidFee * userRepository.getOffers().getWithin4hr()) / 100);
-				responseObject.setStatus(messages.getSuccessStatus());
-				responseObject.setMessage(String.format(messages.getAppointmentCancelled(), refundAmount));
+		if (flag) {
+			List<String> availabilityList = new ArrayList<String>();
+			JSONObject availabilityJson = (JSONObject) parser.parse(availability);
+			availabilityList = (List<String>) availabilityJson
+					.get(userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId()).getBookedDay());
+			boolean flag2 = false;
+			try {
+				if (userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId())
+						.getBookingId() == cancelAppointmentEntity.getBookingId()) {
+					flag2 = true;
+				}
+			} catch (Exception e) {
+				flag2 = false;
 			}
+			if (flag2) {
+				availabilityList
+						.add(userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId()).getBookedTime());
+				availabilityJson.put(
+						userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId()).getBookedDay(),
+						availabilityList);
+				String newavailabilityJson = availabilityJson.toJSONString();
+				userRepository.updateDrAvailability(newavailabilityJson,
+						userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId()).getDoctorId());
+				DateFormat dateFormat = new SimpleDateFormat("HH-mm");
+				Calendar calendar = Calendar.getInstance();
+				String currentTime = dateFormat.format(calendar.getTime());
+				String[] currentTimeList = currentTime.split("-");
+				int currentTimeInMinutes = 60 * Integer.parseInt(currentTimeList[0])
+						+ Integer.parseInt(currentTimeList[1]);
+				String timeOfBooking = userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId())
+						.getTimeOfBooking();
+				String[] timeOfBookingList = timeOfBooking.split("-");
+				int timeOfBookingInMinutes = 60 * Integer.parseInt(timeOfBookingList[0])
+						+ Integer.parseInt(timeOfBookingList[1]);
+				if ((currentTimeInMinutes - timeOfBookingInMinutes) < 240) {
+					int paidFee = userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId())
+							.getFeePaid();
+					int refundAmount = paidFee - ((paidFee * userRepository.getOffers().getWithin4hr()) / 100);
 
+					System.out.println("paidFee if : " + paidFee);
+					System.out.println("refundAmount if : " + refundAmount);
+
+					responseObject.setStatus(messages.getSuccessStatus());
+					responseObject.setMessage(String.format(messages.getAppointmentCancelled(), refundAmount));
+				} else {
+					int paidFee = userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId())
+							.getFeePaid();
+					int refundAmount = paidFee - ((paidFee * userRepository.getOffers().getBefore4hr()) / 100);
+
+					System.out.println("paidFee else : " + paidFee);
+					System.out.println("refundAmount else : " + refundAmount);
+
+					responseObject.setStatus(messages.getSuccessStatus());
+					responseObject.setMessage(String.format(messages.getAppointmentCancelled(), refundAmount));
+				}
+			} else {
+				responseObject.setStatus(messages.getFailedStatus());
+				responseObject.setMessage(messages.getWrongBookingId());
+			}
 		} else {
 			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getIncorrectDetails()); // invalid bookid
+			responseObject.setMessage(messages.getInvalidUserId()); // invalid bookid getIncorrectDetails()
+		}
+		return responseObject;
+	}
+
+	public Object showBooking(CancelAppointmentEntity showBookingEntity) {
+
+		if (userRepository.GetUserIdListFromUserDetails().contains(showBookingEntity.getUserId())) {
+
+			boolean flag = false;
+			try {
+				if (userRepository.GetBookedUserByUserId(showBookingEntity.getUserId())
+						.getBookingId() == showBookingEntity.getBookingId()) {
+					flag = true;
+				}
+			} catch (Exception e) {
+				flag = false;
+				
+			}
+			if (flag) {
+				System.out.println(" true..!!");
+				return userRepository.GetBookedUserByUserId(showBookingEntity.getUserId());
+				
+			} else {
+				responseObject.setStatus(messages.getFailedStatus());
+				responseObject.setMessage(messages.getNoUserId());
+			}
+		} else {
+			responseObject.setStatus(messages.getFailedStatus());
+			responseObject.setMessage(messages.getWrongBookingId());
 		}
 		return responseObject;
 	}
