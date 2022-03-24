@@ -3,6 +3,9 @@ package doctor.appointment.registration.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import UtilityEntity.FeeCalculations;
+import UtilityEntity.TimeCalculations;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -17,6 +20,7 @@ import doctor.appointment.registration.entity.BookDoctorEntity;
 import doctor.appointment.registration.entity.CancelAppointmentEntity;
 import doctor.appointment.registration.entity.ConfirmAppointmentEntity;
 import doctor.appointment.registration.entity.DoctorDetailsEntity;
+import doctor.appointment.registration.entity.GetDrBySpecializationEntity;
 import doctor.appointment.registration.entity.Messages;
 import doctor.appointment.registration.entity.RescheduleEntity;
 import doctor.appointment.registration.entity.ResponseObject;
@@ -33,113 +37,116 @@ public class Services {
 	@Autowired
 	Messages messages;
 	JSONParser parser = new JSONParser();
+	FeeCalculations feeCalculations = new FeeCalculations();
+	TimeCalculations timeCalculations = new TimeCalculations();
 
-//add dr
 	public ResponseObject saveDoctor(DoctorDetailsEntity doctorDetailsEntity) {
-		int drId = (int) (Math.random() * (300 - 200 + 1) + 200);
-		while (userRepository.GetDrIdList().contains(drId)) {
-			drId++;
+		int doctorId = (int) (Math.random() * (300 - 200 + 1) + 200);
+		while (userRepository.checkDoctorId(doctorId)) {
+			doctorId++;
 		}
-		doctorDetailsEntity.setDoctorId(drId);
+		doctorDetailsEntity.setDoctorId(doctorId);
 
-		if (userRepository.GetDrRegisteredMailIdList().contains(doctorDetailsEntity.getEmailId()) == false) {
+		if (userRepository.checkDoctorId(doctorDetailsEntity.getEmailId()) == false) {
 			userRepository.saveDoctor(doctorDetailsEntity);
-			responseObject.setStatus(messages.getSuccessStatus());
-			responseObject.setMessage(messages.getDrAdded());
+			responseObject.setStatus(messages.getSuccessstatus());
+			responseObject.setMessage(messages.getDradded());
 		} else {
-			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getUniqueMail());
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getUniquemail());
 		}
 		return responseObject;
 	}
 
-//delete dr
 	public ResponseObject deleteDr(int drId) {
 		if (userRepository.DeleteDrbyDrId(drId) == 1) {
-			responseObject.setStatus(messages.getSuccessStatus());
-			responseObject.setMessage(messages.getDrDeleted());
+			responseObject.setStatus(messages.getSuccessstatus());
+			responseObject.setMessage(messages.getDrdeleted());
 		} else {
-			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getNoDrAvailable());
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getNodravailable());
 		}
 		return responseObject;
 	}
 
-//delete user
 	public ResponseObject deleteUser(int userId) {
 		if (userRepository.DeleteUserById(userId) == 1) {
-			responseObject.setStatus(messages.getSuccessStatus());
-			responseObject.setMessage(messages.getUserDeleted());
+			responseObject.setStatus(messages.getSuccessstatus());
+			responseObject.setMessage(messages.getUserdeleted());
 		} else {
-			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getNoUserId());
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getInvaliduserid());
 		}
 		return responseObject;
 	}
 
 	public ResponseObject addUser(UserRegistrationEntity userRegistrationEntity) {
-		if (userRepository.UserRegisteredMailIdList().contains(userRegistrationEntity.getMailId()) == false) {
-			if (userRepository.UserRegisteredPhNoList().contains(userRegistrationEntity.getPhoneNumber()) == false) {
+		if (userRepository.checkUserMailId(userRegistrationEntity.getMailId()) == false) {
+			if (userRepository.checkUserPhoneNumber(userRegistrationEntity.getPhoneNumber()) == false) {
 				userRepository.addUser(userRegistrationEntity);
-				responseObject.setStatus(messages.getSuccessStatus());
-				responseObject.setMessage(String.format(messages.getUserAdded(),
+				responseObject.setStatus(messages.getSuccessstatus());
+				responseObject.setMessage(String.format(messages.getUseradded(),
 						userRepository.GetUserId(userRegistrationEntity.getMailId())));
 			} else {
-				responseObject.setStatus(messages.getFailedStatus());
-				responseObject.setMessage(messages.getUniquePhNo());
+				responseObject.setStatus(messages.getFailedstatus());
+				responseObject.setMessage(messages.getUniquephno());
 			}
 		} else {
-			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getUniqueMail());
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getUniquemail());
 		}
 		return responseObject;
 	}
 
 	public ResponseObject addRules(RulesEntity rulesEntity) {
-		userRepository.addRules(rulesEntity);
-		responseObject.setStatus(messages.getSuccessStatus());
-		responseObject.setMessage(messages.getAddRules());
+		if (userRepository.checkUserRules()) {
+			userRepository.addRules(rulesEntity);
+			responseObject.setStatus(messages.getSuccessstatus());
+			responseObject.setMessage(messages.getAddrules());
+		} else {
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getRulesareadyadded());
+		}
+
 		return responseObject;
 	}
 
 	public ResponseObject updateRules(RulesEntity rulesEntity) {
-
-//		if (rulesEntity.getFee().getProcessingFee() ) {
-//
-//		}
-
-		rulesEntity.getOffers().getSpecialOffer();
-		rulesEntity.getDeductions().getBefore4hr();
-		rulesEntity.getDeductions().getAfter4hr();
-
-		userRepository.updateRules(rulesEntity);
-		responseObject.setStatus(messages.getSuccessStatus());
-		responseObject.setMessage(messages.getUpdateRules());
+		if (rulesEntity.getFee().getProcessingFee() != 0) {
+			userRepository.updateProcessingFee(rulesEntity);
+		}
+		if (rulesEntity.getDeductions().getAfter4hr() != 0) {
+			userRepository.updateAfter4hour(rulesEntity);
+		}
+		if (rulesEntity.getDeductions().getBefore4hr() != 0) {
+			userRepository.updateBefore4hour(rulesEntity);
+		}
+		if (rulesEntity.getOffers().getSpecialOffer() != 0) {
+			userRepository.updateSpecialDiscount(rulesEntity);
+		}
+		responseObject.setStatus(messages.getSuccessstatus());
+		responseObject.setMessage(messages.getUpdaterules());
 		return responseObject;
 	}
 
-//find doctor
-	public Object findDoctor(String specialization, int userId) {
-		if (userRepository.GetUserIdListFromUserDetails().contains(userId)) {
-			if (userRepository.findBySpesialization(specialization).isEmpty()) {
-				responseObject.setStatus(messages.getFailedStatus());
-				responseObject.setMessage(messages.getNoDrWithSpecialization());
+	public Object findDoctor(GetDrBySpecializationEntity getDrBySpecializationEntity) {
+		if (userRepository.checkUserIdFromUserDetails(getDrBySpecializationEntity.getUserId())) {
+			if (userRepository.findBySpesialization(getDrBySpecializationEntity.getSpecialization()).isEmpty()) {
+				responseObject.setStatus(messages.getFailedstatus());
+				responseObject.setMessage(messages.getNodrwithspecialization());
 				return responseObject;
 			} else {
-				return userRepository.findBySpesialization(specialization);
+				return userRepository.findBySpesialization(getDrBySpecializationEntity.getSpecialization());
 			}
-		} else
-
-		{
-			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getNoUserId());
+		} else {
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getInvaliduserid());
 		}
 		return responseObject;
 	}
 
-//book Dr 
 	public ResponseObject checkDateAvailability(BookDoctorEntity bookDoctorEntity) {
-		if (userRepository.GetUserIdListFromUserDetails().contains(bookDoctorEntity.getUserId())) {
+		if (userRepository.checkUserIdFromUserDetails(bookDoctorEntity.getUserId())) {
 			try {
 				String availability = userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getAvailability();
 				List<String> availabilityList = new ArrayList<String>();
@@ -153,37 +160,35 @@ public class Services {
 								.getConsultationFee();
 						long discount = (long) (((consultationFee + processingFee) * specialDiscount) / 100);
 						long feeAfterDiscount = (long) (consultationFee + processingFee) - discount;
-						String drAvailabilityStatus = String.format(messages.getDrAvailable(),
+						String drAvailabilityStatus = String.format(messages.getDravailable(),
 								userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getName(),
 								feeAfterDiscount);
-						responseObject.setStatus(messages.getSuccessStatus());
+						responseObject.setStatus(messages.getSuccessstatus());
 						responseObject.setMessage(drAvailabilityStatus);
 					} else {
-						responseObject.setStatus(messages.getFailedStatus());
-						responseObject.setMessage(String.format(messages.getDrNotAvailInTime(),
+						responseObject.setStatus(messages.getFailedstatus());
+						responseObject.setMessage(String.format(messages.getDrnotavailintime(),
 								userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getName()));
 					}
 				} catch (Exception e) {
-					responseObject.setStatus(messages.getFailedStatus());
-					responseObject.setMessage(String.format(messages.getDrNotAvailOnDay(),
+					responseObject.setStatus(messages.getFailedstatus());
+					responseObject.setMessage(String.format(messages.getDrnotavailonday(),
 							userRepository.getDrDetails(bookDoctorEntity.getDoctorId()).getName()));
 				}
 			} catch (Exception e) {
-				responseObject.setStatus(messages.getFailedStatus());
-				responseObject.setMessage(messages.getEnterCorrectdetails());
+				responseObject.setStatus(messages.getFailedstatus());
+				responseObject.setMessage(messages.getEntercorrectdetails());
 			}
 		} else {
-			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getNoUserId());
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getInvaliduserid());
 		}
 		return responseObject;
 	}
 
-//confirm Dr
 	public ResponseObject confirmAppointment(ConfirmAppointmentEntity confirmAppointmentEntity) throws ParseException {
-		if (userRepository.GetUserIdListFromUserDetails()
-				.contains(confirmAppointmentEntity.getBookingInfo().getUserId())) {
-			if (userRepository.GetDrIdList().contains(confirmAppointmentEntity.getBookingInfo().getDoctorId())) {
+		if (userRepository.checkUserIdFromUserDetails(confirmAppointmentEntity.getBookingInfo().getUserId())) {
+			if (userRepository.checkDoctorId(confirmAppointmentEntity.getBookingInfo().getDoctorId())) {
 				String availability = userRepository
 						.getDrDetails(confirmAppointmentEntity.getBookingInfo().getDoctorId()).getAvailability();
 				List<String> availabilityList = new ArrayList<String>();
@@ -200,14 +205,13 @@ public class Services {
 						long discount = (long) (((consultationFee + processingFee) * specialDiscount) / 100);
 						long feeAfterDiscount = (long) (consultationFee + processingFee) - discount;
 						if (feeAfterDiscount == confirmAppointmentEntity.getPaymentInfo().getAmount()) {
-							if (userRepository.GetUserIdList()
-									.contains(confirmAppointmentEntity.getBookingInfo().getUserId()) == false) {
+							if (userRepository.checkUserIdFromBookingDetails(
+									confirmAppointmentEntity.getBookingInfo().getUserId()) == false) {
 								availabilityList.remove(confirmAppointmentEntity.getBookingInfo().getTime());
 								availabilityJson.remove(confirmAppointmentEntity.getBookingInfo().getDay());
 								availabilityJson.put(confirmAppointmentEntity.getBookingInfo().getDay(),
 										availabilityList);
 								String newavailabilityJson = availabilityJson.toJSONString();
-								// save time of confirm in table
 								DateFormat dateFormat = new SimpleDateFormat("HH-mm");
 								Calendar calendar = Calendar.getInstance();
 								String currentTime = dateFormat.format(calendar.getTime());
@@ -218,47 +222,38 @@ public class Services {
 								int bookingId = userRepository
 										.GetBookedUserByUserId(confirmAppointmentEntity.getBookingInfo().getUserId())
 										.getBookingId();
-								responseObject.setStatus(messages.getSuccessStatus());
-								responseObject.setMessage(String.format(messages.getAppointmentConfirm(), bookingId));
+								responseObject.setStatus(messages.getSuccessstatus());
+								responseObject.setMessage(String.format(messages.getAppointmentconfirm(), bookingId));
 							} else {
-								responseObject.setStatus(messages.getFailedStatus());
-								responseObject.setMessage(messages.getTockenIdAlready());
+								responseObject.setStatus(messages.getFailedstatus());
+								responseObject.setMessage(messages.getTockenidalready());
 							}
 						} else {
-							responseObject.setStatus(messages.getFailedStatus());
-							responseObject.setMessage(String.format(messages.getPayCorrectAmount(), feeAfterDiscount));
+							responseObject.setStatus(messages.getFailedstatus());
+							responseObject.setMessage(String.format(messages.getPaycorrectamount(), feeAfterDiscount));
 						}
 					} else {
-						responseObject.setStatus(messages.getFailedStatus());
-						responseObject.setMessage(messages.getTimeNotAvailable());
+						responseObject.setStatus(messages.getFailedstatus());
+						responseObject.setMessage(messages.getTimenotavailable());
 					}
 				} else {
-					responseObject.setStatus(messages.getFailedStatus());
-					responseObject.setMessage(messages.getEnterCorrectDay());
+					responseObject.setStatus(messages.getFailedstatus());
+					responseObject.setMessage(messages.getEntercorrectday());
 				}
 			} else {
-				responseObject.setStatus(messages.getFailedStatus());
-				responseObject.setMessage(messages.getNoDrAvailable());
+				responseObject.setStatus(messages.getFailedstatus());
+				responseObject.setMessage(messages.getNodravailable());
 			}
 		} else {
-			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getNoUserId());
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getInvaliduserid());
 		}
 		return responseObject;
 	}
 
 	public ResponseObject rescheduleAppointment(RescheduleEntity rescheduleEntity) throws ParseException {
-		if (userRepository.GetUserIdListFromUserDetails().contains(rescheduleEntity.getUserId())) {
-			boolean flag = false;
-			try {
-				if (userRepository.GetBookedUserByUserId(rescheduleEntity.getUserId())
-						.getBookingId() == rescheduleEntity.getBookingId()) {
-					flag = true;
-				}
-			} catch (Exception e) {
-				flag = false;
-			}
-			if (flag) {
+		if (userRepository.checkUserIdFromUserDetails(rescheduleEntity.getUserId())) {
+			if (userRepository.CheckBookingId(rescheduleEntity.getBookingId())) {
 				String availability = userRepository
 						.getDrDetails(userRepository.GetBookedUserByUserId(rescheduleEntity.getUserId()).getDoctorId())
 						.getAvailability();
@@ -279,52 +274,35 @@ public class Services {
 					userRepository.updateDrAvailability(newavailabilityJson,
 							userRepository.GetBookedUserByUserId(rescheduleEntity.getUserId()).getDoctorId());
 					userRepository.UpdateUserDetails(rescheduleEntity.getNewTime(), rescheduleEntity.getUserId());
-					responseObject.setStatus(messages.getSuccessStatus());
+					responseObject.setStatus(messages.getSuccessstatus());
 					responseObject.setMessage(
-							String.format(messages.getRescheduleCompleted(), rescheduleEntity.getNewTime()));
+							String.format(messages.getReschedulecompleted(), rescheduleEntity.getNewTime()));
 				} else {
-					responseObject.setStatus(messages.getFailedStatus());
-					responseObject.setMessage(messages.getTimeNotAvailable());
+					responseObject.setStatus(messages.getFailedstatus());
+					responseObject.setMessage(messages.getTimenotavailable());
 				}
 			} else {
-				responseObject.setStatus(messages.getFailedStatus());
-				responseObject.setMessage(messages.getWrongBookingId());
+				responseObject.setStatus(messages.getFailedstatus());
+				responseObject.setMessage(messages.getWrongbookingid());
 			}
 		} else {
-			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getNoUserId());
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getInvaliduserid());
 		}
 		return responseObject;
 	}
 
 	public ResponseObject cancelAppointment(CancelAppointmentEntity cancelAppointmentEntity) throws ParseException {
-		String availability = null;
-		boolean flag = false;
-		try {
-			availability = userRepository
+		if (userRepository.checkUserIdFromBookingDetails(cancelAppointmentEntity.getUserId())) {
+			String availability = userRepository
 					.getDrDetails(
 							userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId()).getDoctorId())
 					.getAvailability();
-			flag = true;
-		} catch (Exception e) {
-			flag = false;
-		}
-
-		if (flag) {
 			List<String> availabilityList = new ArrayList<String>();
 			JSONObject availabilityJson = (JSONObject) parser.parse(availability);
 			availabilityList = (List<String>) availabilityJson
 					.get(userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId()).getBookedDay());
-			boolean flag2 = false;
-			try {
-				if (userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId())
-						.getBookingId() == cancelAppointmentEntity.getBookingId()) {
-					flag2 = true;
-				}
-			} catch (Exception e) {
-				flag2 = false;
-			}
-			if (flag2) {
+			if (userRepository.CheckBookingId(cancelAppointmentEntity.getBookingId())) {
 				availabilityList
 						.add(userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId()).getBookedTime());
 				availabilityJson.put(
@@ -348,59 +326,40 @@ public class Services {
 					int paidFee = userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId())
 							.getFeePaid();
 					int refundAmount = paidFee - ((paidFee * userRepository.getOffers().getWithin4hr()) / 100);
-
-					System.out.println("paidFee if : " + paidFee);
-					System.out.println("refundAmount if : " + refundAmount);
-
-					responseObject.setStatus(messages.getSuccessStatus());
-					responseObject.setMessage(String.format(messages.getAppointmentCancelled(), refundAmount));
+					userRepository.DeleteAppointmentByUserId(cancelAppointmentEntity.getUserId());
+					responseObject.setStatus(messages.getSuccessstatus());
+					responseObject.setMessage(String.format(messages.getAppointmentcancelled(), refundAmount));
 				} else {
 					int paidFee = userRepository.GetBookedUserByUserId(cancelAppointmentEntity.getUserId())
 							.getFeePaid();
 					int refundAmount = paidFee - ((paidFee * userRepository.getOffers().getBefore4hr()) / 100);
-
-					System.out.println("paidFee else : " + paidFee);
-					System.out.println("refundAmount else : " + refundAmount);
-
-					responseObject.setStatus(messages.getSuccessStatus());
-					responseObject.setMessage(String.format(messages.getAppointmentCancelled(), refundAmount));
+					userRepository.DeleteAppointmentByUserId(cancelAppointmentEntity.getUserId());
+					responseObject.setStatus(messages.getSuccessstatus());
+					responseObject.setMessage(String.format(messages.getAppointmentcancelled(), refundAmount));
 				}
 			} else {
-				responseObject.setStatus(messages.getFailedStatus());
-				responseObject.setMessage(messages.getWrongBookingId());
+				responseObject.setStatus(messages.getFailedstatus());
+				responseObject.setMessage(messages.getWrongbookingid());
 			}
 		} else {
-			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getInvalidUserId()); // invalid bookid getIncorrectDetails()
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getInvaliduserid());
 		}
 		return responseObject;
 	}
 
 	public Object showBooking(CancelAppointmentEntity showBookingEntity) {
-
-		if (userRepository.GetUserIdListFromUserDetails().contains(showBookingEntity.getUserId())) {
-
-			boolean flag = false;
-			try {
-				if (userRepository.GetBookedUserByUserId(showBookingEntity.getUserId())
-						.getBookingId() == showBookingEntity.getBookingId()) {
-					flag = true;
-				}
-			} catch (Exception e) {
-				flag = false;
-				
-			}
-			if (flag) {
-				System.out.println(" true..!!");
+		if (userRepository.checkUserIdFromUserDetails(showBookingEntity.getUserId())) {
+			if (userRepository.CheckBookingId(showBookingEntity.getBookingId())) {
 				return userRepository.GetBookedUserByUserId(showBookingEntity.getUserId());
-				
 			} else {
-				responseObject.setStatus(messages.getFailedStatus());
-				responseObject.setMessage(messages.getNoUserId());
+				responseObject.setStatus(messages.getFailedstatus());
+				responseObject.setMessage(messages.getWrongbookingid());
 			}
 		} else {
-			responseObject.setStatus(messages.getFailedStatus());
-			responseObject.setMessage(messages.getWrongBookingId());
+			responseObject.setStatus(messages.getFailedstatus());
+			responseObject.setMessage(messages.getInvaliduserid());
+
 		}
 		return responseObject;
 	}

@@ -3,8 +3,10 @@ package doctor.appointment.registration.repository;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import doctor.appointment.registration.entity.ConfirmAppointmentEntity;
@@ -29,7 +31,6 @@ public class UserRepository {
 	@Autowired
 	ConfirmAppointmentEntity confirmAppointmentEntity;
 
-//admin - save doctors
 	public void saveDoctor(DoctorDetailsEntity doctorDetailsEntity) {
 		jdbcTemplate.update(
 				"INSERT INTO doctors_list (name, doctor_id, specialization, consultation_fee,availability,email_id) VALUES (?,?,?,?,?,?)",
@@ -38,14 +39,12 @@ public class UserRepository {
 						doctorDetailsEntity.getAvailability().toString(), doctorDetailsEntity.getEmailId() });
 	}
 
-//save user
 	public void addUser(UserRegistrationEntity userRegistrationEntity) {
 		jdbcTemplate.update("INSERT INTO user_details (user_id, mail_id, phone_number, user_name) VALUES (?,?,?,?)",
 				new Object[] { userRegistrationEntity.getUserId(), userRegistrationEntity.getMailId(),
 						userRegistrationEntity.getPhoneNumber(), userRegistrationEntity.getUserName() });
 	}
 
-//admin - add rules 
 	public void addRules(RulesEntity rulesEntity) {
 		jdbcTemplate.update(
 				"INSERT INTO payment_rules (porcessing_fee, special_discount, before4hr,within4hr) VALUES (?,?,?,?)",
@@ -53,24 +52,32 @@ public class UserRepository {
 						rulesEntity.getDeductions().getBefore4hr(), rulesEntity.getDeductions().getAfter4hr() });
 	}
 
-//admin - update rules 
-	public void updateRules(RulesEntity rulesEntity) {
-		jdbcTemplate.update("UPDATE payment_rules SET porcessing_fee=?, special_discount=?, before4hr=?,within4hr=?",
-				new Object[] { rulesEntity.getFee().getProcessingFee(), rulesEntity.getOffers().getSpecialOffer(),
-						rulesEntity.getDeductions().getBefore4hr(), rulesEntity.getDeductions().getAfter4hr() });
+	public void updateProcessingFee(RulesEntity rulesEntity) {
+		jdbcTemplate.update("UPDATE payment_rules SET porcessing_fee=?",
+				new Object[] { rulesEntity.getFee().getProcessingFee() });
 	}
-	// take rules to an entity
-	// if the incoming req is null then save old value to a variable
-	// then use that data to update
 
-// user-find doctor details by specialization
+	public void updateSpecialDiscount(RulesEntity rulesEntity) {
+		jdbcTemplate.update("UPDATE payment_rules SET special_discount=?",
+				new Object[] { rulesEntity.getOffers().getSpecialOffer() });
+	}
+
+	public void updateBefore4hour(RulesEntity rulesEntity) {
+		jdbcTemplate.update("UPDATE payment_rules SET before4hr=?",
+				new Object[] { rulesEntity.getDeductions().getBefore4hr() });
+	}
+
+	public void updateAfter4hour(RulesEntity rulesEntity) {
+		jdbcTemplate.update("UPDATE payment_rules SET within4hr=?",
+				new Object[] { rulesEntity.getDeductions().getAfter4hr() });
+	}
+
 	public List<GetDoctorDetailsEntity> findBySpesialization(String specialization) {
 		return jdbcTemplate.query("SELECT * FROM appoitnmentapptables.doctors_list WHERE specialization=?;",
 				new BeanPropertyRowMapper<GetDoctorDetailsEntity>(GetDoctorDetailsEntity.class), specialization);
 
 	}
 
-	// select doctor detail in giving id
 	public GetDoctorDetailsEntity getDrDetails(int doctorId) {
 		return jdbcTemplate.queryForObject("SELECT * FROM appoitnmentapptables.doctors_list where doctor_id =?;",
 				new BeanPropertyRowMapper<GetDoctorDetailsEntity>(GetDoctorDetailsEntity.class), doctorId);
@@ -108,14 +115,6 @@ public class UserRepository {
 
 	}
 
-	public List<String> UserRegisteredMailIdList() {
-		return jdbcTemplate.queryForList("SELECT mail_id FROM appoitnmentapptables.user_details;", String.class);
-	}
-
-	public List<String> UserRegisteredPhNoList() {
-		return jdbcTemplate.queryForList("SELECT phone_number FROM appoitnmentapptables.user_details;", String.class);
-	}
-
 	public List<Integer> GetDrIdList() {
 		return jdbcTemplate.queryForList("SELECT doctor_id FROM appoitnmentapptables.doctors_list;", Integer.class);
 	}
@@ -125,25 +124,103 @@ public class UserRepository {
 				"SELECT user_id FROM appoitnmentapptables.user_details where mail_id=?;", String.class, mailId));
 	}
 
-	public List<Integer> GetUserIdList() {
-		return jdbcTemplate.queryForList("SELECT user_id FROM appoitnmentapptables.booking_details;", Integer.class);
-	}
-
-	public List<String> GetDrRegisteredMailIdList() {
-		return jdbcTemplate.queryForList("SELECT email_id FROM appoitnmentapptables.doctors_list;", String.class);
-	}
-
 	public int DeleteDrbyDrId(int drId) {
 		return jdbcTemplate.update("DELETE FROM doctors_list WHERE doctor_id=?;", drId);
 	}
 
 	public int DeleteUserById(int userId) {
-		return jdbcTemplate.update("DELETE FROM appoitnmentapptables.booking_details WHERE user_id=?;", userId);
+		return jdbcTemplate.update("DELETE FROM appoitnmentapptables.user_details WHERE user_id=?;", userId);
+	}
+	
+	public void DeleteAppointmentByUserId(int userId) {
+		jdbcTemplate.update("DELETE FROM appoitnmentapptables.booking_details WHERE user_id=?;", userId);
+	}
+	
+	public boolean checkDoctorId(String emailId) {
+		try {
+			jdbcTemplate.queryForObject("select doctor_id from appoitnmentapptables.doctors_list where email_id = ?;",
+					Integer.class, emailId);
+			return true;
+		} catch (EmptyResultDataAccessException e) {
+			return false;
+		}
+
 	}
 
-	// get user id list from user details
-	public List<Integer> GetUserIdListFromUserDetails() {
-		return jdbcTemplate.queryForList("SELECT user_id FROM appoitnmentapptables.user_details;", Integer.class);
+	public boolean checkDoctorId(int doctorId) {
+		try {
+			jdbcTemplate.queryForObject("SELECT doctor_id from appoitnmentapptables.doctors_list where doctor_id =?;",
+					Integer.class, doctorId);
+			return true;
+		} catch (EmptyResultDataAccessException e) {
+			return false;
+		}
+
+	}
+
+	public boolean checkUserMailId(String emailId) {
+		try {
+			jdbcTemplate.queryForObject("SELECT user_id FROM appoitnmentapptables.user_details where mail_id=?;",
+					Integer.class, emailId);
+			return true;
+		} catch (EmptyResultDataAccessException e) {
+			return false;
+		}
+
+	}
+
+	public boolean checkUserPhoneNumber(String phoneNumber) {
+		try {
+			jdbcTemplate.queryForObject("SELECT user_id FROM appoitnmentapptables.user_details where phone_number=?;",
+					Integer.class, phoneNumber);
+			return true;
+		} catch (EmptyResultDataAccessException e) {
+			return false;
+		}
+
+	}
+
+	public boolean checkUserIdFromUserDetails(int userId) {
+		try {
+			jdbcTemplate.queryForObject("SELECT user_id FROM appoitnmentapptables.user_details where user_id =?;",
+					Integer.class, userId);
+			return true;
+		} catch (EmptyResultDataAccessException e) {
+			return false;
+		}
+
+	}
+
+	public boolean CheckBookingId(int bookingId) {
+		try {
+			jdbcTemplate.queryForObject(
+					"SELECT booking_id FROM appoitnmentapptables.booking_details where booking_id =?;", Integer.class,
+					bookingId);
+			return true;
+		} catch (EmptyResultDataAccessException e) {
+			return false;
+		}
+	}
+
+	public boolean checkUserIdFromBookingDetails(int userId) {
+		try {
+			jdbcTemplate.queryForObject("SELECT user_id FROM appoitnmentapptables.booking_details where user_id =?;",
+					Integer.class, userId);
+			return true;
+		} catch (EmptyResultDataAccessException e) {
+			return false;
+		}
+
+	}
+
+	public boolean checkUserRules() {
+		try {
+			jdbcTemplate.queryForObject("SELECT id FROM appoitnmentapptables.payment_rules;", Integer.class);
+			return false;
+		} catch (EmptyResultDataAccessException e) {
+			return true;
+		}
+
 	}
 
 }

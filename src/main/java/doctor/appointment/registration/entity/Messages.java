@@ -4,153 +4,165 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class Messages {
-	public String successStatus = "200";
-	public String failedStatus = "404";
-	public String drAdded = "Doctor added succesfully";
-	public String addRules = "Rules added succesfully";
-	public String updateRules = "Rules updated succesfully";
-	public String drAvailable = "Dr %s is available in the selected time, Total consultation fee is %d, including processing fee and special discount. ";
-	public String drNotAvailInTime = "Sorry Dr %s is not available in the selected time, please change the time and try again";
-	public String drNotAvailOnDay = "Sorry Dr %s is not available on the selected day, please select an available day";
-	public String appointmentConfirm = "Appoitnment confiremed, Your booking id is %d , Thank you.";
-	public String noDrAvailable = "No doctor is available with the given doctorId";
-	public String rescheduleCompleted = "Rescheduled your appointment, new time slot is %s .";
-	public String timeNotAvailable = "Time you have selected is not available, please select another time.";
-	public String appointmentCancelled = "Your appointment is cancelled succesfully, You will get an amount of %d as refund.";
-	public String incorrectDetails = "You have enetered incorrect tocken id, please check your input and try again.";
-	public String noDrWithSpecialization = "Sorry, No doctor is available with the given specialization";
-	public String enterCorrectdetails = "Please enter correct doctorId";
-	public String enterCorrectDay = "Please enter a correct day, reffer availability of doctor";
-	public String enterCorrectBookedTime = "Please enter a correct booked time.";
-	public String enterCorrectBookeDay = "Please enter a correct booked day";
-	public String userAdded = "User added succesfully, your user id is %d .";
-	public String uniquePhNo = "Phone number is already registered. ";
-	public String uniqueMail = "Email id is already registered. ";
-	public String payCorrectAmount = "Please pay correct fee, Rs. %d. ";
-	public String tockenIdAlready = "User id already registered. ";
-	public String drDeleted = "Doctor deleted succesfully. ";
-	public String noUserId = "Please enter a valid user id. ";
-	public String wrongBookingId = "Wrong booking id, please check the booking id.";
-	public String invalidUserId = "You have entered invali user id.";
-	public String userDeleted = "User deleted succesfully.";
+	final static String successStatus = "200";
+	final static String failedStatus = "404";
+	final static String drAdded = "Doctor added succesfully";
+	final static String addRules = "Rules added succesfully";
+	final static String updateRules = "Rules updated succesfully";
+	final static String drAvailable = "Dr %s is available in the selected time, Total consultation fee is %d, including processing fee and special discount. ";
+	final static String drNotAvailInTime = "Sorry Dr %s is not available in the selected time, please change the time and try again";
+	final static String drNotAvailOnDay = "Sorry Dr %s is not available on the selected day, please select an available day";
+	final static String appointmentConfirm = "Appoitnment confiremed, Your booking id is %d , Thank you.";
+	final static String noDrAvailable = "No doctor is available with the given doctorId";
+	final static String rescheduleCompleted = "Rescheduled your appointment, new time slot is %s .";
+	final static String timeNotAvailable = "Time you have selected is not available, please select another time.";
+	final static String appointmentCancelled = "Your appointment is cancelled succesfully, You will get an amount of %d as refund.";
+	final static String incorrectDetails = "You have enetered incorrect tocken id, please check your input and try again.";
+	final static String noDrWithSpecialization = "Sorry, No doctor is available with the given specialization";
+	final static String enterCorrectdetails = "Please enter correct doctorId";
+	final static String enterCorrectDay = "Please enter a correct day, reffer availability of doctor";
+	final static String enterCorrectBookedTime = "Please enter a correct booked time.";
+	final static String enterCorrectBookeDay = "Please enter a correct booked day";
+	final static String userAdded = "User added succesfully, your user id is %d .";
+	final static String uniquePhNo = "Phone number is already registered. ";
+	final static String uniqueMail = "Email id is already registered. ";
+	final static String payCorrectAmount = "Please pay correct fee, Rs. %d. ";
+	final static String tockenIdAlready = "User id already registered. ";
+	final static String drDeleted = "Doctor deleted succesfully. ";
+	final static String noUserId = "Please enter a valid user id. ";
+	final static String wrongBookingId = "Wrong booking id, please check the booking id.";
+	final static String invalidUserId = "You have entered invali user id.";
+	final static String userDeleted = "User deleted succesfully.";
+	final static String timeFormat = "HH-mm";
+	final static String stringToSplitTime = "-";
+	final static String rulesAreadyAdded = "Rules already added, please use update rules to make any changes in rules.";
 
-	public String getUserDeleted() {
-		return userDeleted;
+	public static String getRulesareadyadded() {
+		return rulesAreadyAdded;
 	}
 
-	public String getInvalidUserId() {
-		return invalidUserId;
+	public static String getStringtosplittime() {
+		return stringToSplitTime;
 	}
 
-	public String getWrongBookingId() {
-		return wrongBookingId;
+	public static String getTimeformat() {
+		return timeFormat;
 	}
 
-	public String getNoUserId() {
-		return noUserId;
-	}
-
-	public String getDrDeleted() {
-		return drDeleted;
-	}
-
-	public String getTockenIdAlready() {
-		return tockenIdAlready;
-	}
-
-	public String getPayCorrectAmount() {
-		return payCorrectAmount;
-	}
-
-	public String getUniquePhNo() {
-		return uniquePhNo;
-	}
-
-	public String getUniqueMail() {
-		return uniqueMail;
-	}
-
-	public String getUserAdded() {
-		return userAdded;
-	}
-
-	public String getEnterCorrectBookedTime() {
-		return enterCorrectBookedTime;
-	}
-
-	public String getEnterCorrectBookeDay() {
-		return enterCorrectBookeDay;
-	}
-
-	public String getNoDrAvailable() {
-		return noDrAvailable;
-	}
-
-	public String getEnterCorrectDay() {
-		return enterCorrectDay;
-	}
-
-	public String getEnterCorrectdetails() {
-		return enterCorrectdetails;
-	}
-
-	public String getNoDrWithSpecialization() {
-		return noDrWithSpecialization;
-	}
-
-	public String getIncorrectDetails() {
-		return incorrectDetails;
-	}
-
-	public String getAppointmentCancelled() {
-		return appointmentCancelled;
-	}
-
-	public String getTimeNotAvailable() {
-		return timeNotAvailable;
-	}
-
-	public String getRescheduleCompleted() {
-		return rescheduleCompleted;
-	}
-
-	public String getAppointmentConfirm() {
-		return appointmentConfirm;
-	}
-
-	public String getDrNotAvailOnDay() {
-		return drNotAvailOnDay;
-	}
-
-	public String getDrNotAvailInTime() {
-		return drNotAvailInTime;
-	}
-
-	public String getFailedStatus() {
-		return failedStatus;
-	}
-
-	public String getDrAvailable() {
-		return drAvailable;
-	}
-
-	public String getSuccessStatus() {
+	public static String getSuccessstatus() {
 		return successStatus;
 	}
 
-	public String getDrAdded() {
+	public static String getFailedstatus() {
+		return failedStatus;
+	}
+
+	public static String getDradded() {
 		return drAdded;
 	}
 
-	public void setDrAdded(String drAdded) {
-		this.drAdded = drAdded;
-	}
-
-	public String getAddRules() {
+	public static String getAddrules() {
 		return addRules;
 	}
 
-	public String getUpdateRules() {
+	public static String getUpdaterules() {
 		return updateRules;
 	}
+
+	public static String getDravailable() {
+		return drAvailable;
+	}
+
+	public static String getDrnotavailintime() {
+		return drNotAvailInTime;
+	}
+
+	public static String getDrnotavailonday() {
+		return drNotAvailOnDay;
+	}
+
+	public static String getAppointmentconfirm() {
+		return appointmentConfirm;
+	}
+
+	public static String getNodravailable() {
+		return noDrAvailable;
+	}
+
+	public static String getReschedulecompleted() {
+		return rescheduleCompleted;
+	}
+
+	public static String getTimenotavailable() {
+		return timeNotAvailable;
+	}
+
+	public static String getAppointmentcancelled() {
+		return appointmentCancelled;
+	}
+
+	public static String getIncorrectdetails() {
+		return incorrectDetails;
+	}
+
+	public static String getNodrwithspecialization() {
+		return noDrWithSpecialization;
+	}
+
+	public static String getEntercorrectdetails() {
+		return enterCorrectdetails;
+	}
+
+	public static String getEntercorrectday() {
+		return enterCorrectDay;
+	}
+
+	public static String getEntercorrectbookedtime() {
+		return enterCorrectBookedTime;
+	}
+
+	public static String getEntercorrectbookeday() {
+		return enterCorrectBookeDay;
+	}
+
+	public static String getUseradded() {
+		return userAdded;
+	}
+
+	public static String getUniquephno() {
+		return uniquePhNo;
+	}
+
+	public static String getUniquemail() {
+		return uniqueMail;
+	}
+
+	public static String getPaycorrectamount() {
+		return payCorrectAmount;
+	}
+
+	public static String getTockenidalready() {
+		return tockenIdAlready;
+	}
+
+	public static String getDrdeleted() {
+		return drDeleted;
+	}
+
+	public static String getNouserid() {
+		return noUserId;
+	}
+
+	public static String getWrongbookingid() {
+		return wrongBookingId;
+	}
+
+	public static String getInvaliduserid() {
+		return invalidUserId;
+	}
+
+	public static String getUserdeleted() {
+		return userDeleted;
+	}
+
 }
